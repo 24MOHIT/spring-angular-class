@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { HttpServiceService } from '../http-service.service';
 
 @Component({
   selector: 'app-signup',
@@ -13,25 +14,25 @@ export class SignupComponent {
     message: '',
     inputerror: {}
   }
-  constructor(private httpclient: HttpClient) {
+   constructor(private httpService: HttpServiceService) {
 
   }
-  signUp() {
-    console.log('form:', this.form)
-    this.httpclient.post('http://localhost:8080/Auth/signUp', this.form.data).subscribe((res: any) => {
-      console.log('res =>', res)
 
-      this.form.message = '';
-      this.form.inputerror = {};
+  signUp() {
+    var self = this
+    this.httpService.post('http://localhost:8080/Auth/signUp', this.form.data, function (res: any) {
+      console.log('res => ', res)
+
+      self.form.message = '';
+      self.form.inputerror = {};
 
       if (res.result.message) {
-        this.form.message = res.result.message;
+        self.form.message = res.result.message;
       }
 
       if (!res.success) {
-        this.form.inputerror = res.result.inputerror;
+        self.form.inputerror = res.result.inputerror;
       }
-
     })
   }
 }

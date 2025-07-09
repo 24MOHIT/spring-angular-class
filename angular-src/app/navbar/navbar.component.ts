@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpServiceService } from '../http-service.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,13 +12,14 @@ export class NavbarComponent {
     data: {}
   }
 
-  constructor(private router: Router) { }
+   constructor(private router: Router, private httpService: HttpServiceService) { }
 
   isLogin() {
     let check = localStorage.getItem('firstName');
     if (check != "null" && check != null) {
       this.form.data.firstName = localStorage.getItem("firstName");
       this.form.data.roleName = localStorage.getItem("roleName");
+      this.form.data.id = localStorage.getItem("id");
       return true;
     } else {
       return false;
@@ -25,8 +27,10 @@ export class NavbarComponent {
   }
 
   logout() {
-    localStorage.clear();
-    this.router.navigateByUrl('login')
+    var self = this;
+    this.httpService.get('http://localhost:8080/Auth/logout', function (res: any) {
+      localStorage.clear();
+      self.router.navigateByUrl('/login')
+    })
   }
-
 }

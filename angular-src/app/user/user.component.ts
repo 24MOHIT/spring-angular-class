@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { HttpServiceService } from '../http-service.service';
 
 @Component({
   selector: 'app-user',
@@ -18,7 +19,7 @@ export class UserComponent implements OnInit {
 
   fileToUpload: any = null;
 
-  constructor(private httpClient: HttpClient, private route: ActivatedRoute) {
+  constructor(private httpService: HttpServiceService, private httpClient: HttpClient, private route: ActivatedRoute) {
     this.route.params.subscribe((params: any) => {
       this.form.data.id = params["id"];
       console.log(this.form.data.id)
@@ -35,16 +36,18 @@ export class UserComponent implements OnInit {
 
 
   preload() {
-    this.httpClient.get('http://localhost:8080/User/preload').subscribe((res: any) => {
+    var self = this
+    this.httpService.get('http://localhost:8080/User/preload', function (res: any) {
       console.log(res)
-      this.form.preload = res.result.roleList;
+      self.form.preload = res.result.roleList;
     });
   }
 
   display() {
-    this.httpClient.get('http://localhost:8080/User/get/' + this.form.data.id).subscribe((res: any) => {
+    var self = this
+    this.httpService.get('http://localhost:8080/User/get/' + this.form.data.id, function (res: any) {
       console.log(res)
-      this.form.data = res.result.data;
+      self.form.data = res.result.data;
     });
   }
 
@@ -55,33 +58,42 @@ export class UserComponent implements OnInit {
   }
 
   save() {
-    this.httpClient.post('http://localhost:8080/User/save', this.form.data).subscribe((res: any) => {
+    var self = this
+    this.httpService.post('http://localhost:8080/User/save', this.form.data, function (res: any) {
       console.log('res => ', res)
 
-      this.form.message = '';
-      this.form.inputerror = {};
+      self.form.message = '';
+      self.form.inputerror = {};
 
       if (res.result.message) {
-        this.form.message = res.result.message;
+        self.form.message = res.result.message;
       }
 
       if (!res.success) {
-        this.form.inputerror = res.result.inputerror;
+        self.form.inputerror = res.result.inputerror;
       }
 
-      this.form.data.id = res.result.data;
+      self.form.data.id = res.result.data;
 
-      this.myFile();
+      self.myFile();
     });
   }
+
+
 
   myFile() {
     const formData = new FormData();
     formData.append('file', this.fileToUpload);
-    return this.httpClient.post("http://localhost:8080/User/profilePic/" + this.form.data.id, formData).subscribe((res: any) => {
+
+    return this.httpClient.post(
+      "http://localhost:8080/User/profilePic/" + this.form.data.id,
+      formData,
+      { withCredentials: true } // ✅ This is required!
+    ).subscribe((res: any) => {
       console.log(this.fileToUpload);
-    }, (error: any) => {
+    }, error => {
       console.log(error);
     });
   }
+
 }
